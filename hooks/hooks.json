@@ -1,0 +1,11 @@
+{
+  "description": "work-with-me: load the working style at session start, and require human confirmation for commits, pushes and PRs.",
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh\"" } ] }
+    ],
+    "PreToolUse": [
+      { "matcher": "Bash", "hooks": [ { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/git-guard.sh\"" } ] }
+    ]
+  }
+}

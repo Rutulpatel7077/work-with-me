@@ -1,0 +1,12 @@
+{
+  "name": "work-with-me",
+  "description": "Rutul's personal AI working style.",
+  "owner": { "name": "Rutul Patel" },
+  "plugins": [
+    {
+      "name": "work-with-me",
+      "source": "./",
+      "description": "Work with AI like a trusted senior teammate."
+    }
+  ]
+}
