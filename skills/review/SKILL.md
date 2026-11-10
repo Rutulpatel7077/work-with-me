@@ -13,6 +13,7 @@ Review the way a careful senior teammate would: is it correct, can the next pers
 ## 1. Find the scope
 
 - A PR number or URL → that PR.
+- A branch name → look for its PR with `gh pr list --head <branch>`, and if there is one, treat it as that PR. When the branch isn't checked out, read it with `git diff origin/main...origin/<branch>` and `git show origin/<branch>:<path>`. Don't switch the user's checkout.
 - Otherwise the current branch against its base (`git merge-base HEAD origin/main`, or the default branch), plus uncommitted changes.
 - A path or file the user names → that.
 
@@ -27,6 +28,7 @@ If `gh` is installed and authenticated and the scope is a PR, collect what other
 ```bash
 gh pr view <n> --json title,body,reviews,comments
 gh api repos/{owner}/{repo}/pulls/<n>/comments --paginate   # inline review comments
+gh pr view <n> --json headRefOid,mergeStateStatus && gh pr checks <n>   # CI result for the head commit
 ```
 
 Note each point raised, who raised it (person or bot, such as Copilot, CodeRabbit, Bugbot), and whether it was resolved or answered. If `gh` is missing or there's no PR, skip this step and say so in one line.
@@ -40,7 +42,7 @@ On a branch or PR, tag each finding **introduced** (this change added it) or **p
 Check:
 
 - **Correctness.** Logic errors, off-by-one, null and empty cases, error handling, races, wrong assumptions about a dependency's API (use the **research** skill when unsure).
-- **Tests.** Does a test cover the new behavior? Would it fail if the change were reverted? Run the tests if you can.
+- **Tests.** Does a test cover the new behavior? Would it fail if the change were reverted? If CI is green on the head commit you're reviewing, cite those jobs and don't re-run the same suites. A green run only says the existing tests pass, so spend the time on those two questions instead. Run locally what CI doesn't run, and run everything when there is no CI, the head moved after the run, or the branch is behind its base.
 - **Readability.** Judge against [../work-with-me/references/code-style.md](../work-with-me/references/code-style.md). Does each file read top to bottom like a story? Could a teammate understand each function in one read? Clear names, no needless indirection, no dead code, no comments that restate the code.
 - **Separation of concerns.** Does the feature live in its own module, or is it smeared across unrelated files? Is business logic mixed with I/O or request handling?
 - **Slop.** Narrating or stale comments, commented-out code, swallowed errors, defensive clutter, leftovers, generic names. Use the **unslop** skill's checklists.
@@ -54,6 +56,7 @@ Check:
 For each correctness or security finding, try to reproduce it yourself before reporting it. A reproduced bug is worth far more than a suspected one, and it saves the user from checking it.
 
 - **Stay local and safe.** Write a failing test, a small script, or run the app locally against test data. Never reproduce against production, shared databases, cloud resources, or anything outside the local working copy. If the only way to reproduce is on a live system, don't. Write down the steps for the user and say why you didn't run them.
+- **Run the real code.** If the branch isn't checked out, a `git worktree` lets the repro import the actual modules. A script that copies the code instead proves the copy, so say that's what it was.
 - **Keep it cheap.** Spend a few minutes, not an hour. If a repro gets complicated, stop and report the finding as unconfirmed with your reasoning.
 - **Clean up.** Delete throwaway scripts and test data you created, unless the repro is worth keeping as a real regression test (then say so).
 
@@ -74,6 +77,8 @@ Then a separate section:
 **Already raised.** Points from step 2 that match a real problem, one line each: "`file:line`, already raised by @reviewer (or bot name), still unaddressed. Agree." Don't re-explain them. If you disagree with an existing comment, say so in one line with the reason. Leave out existing comments that were resolved.
 
 **Considered and dismissed.** Things that looked like problems but aren't (by design, already decided in an ADR, a standard convention), one line each with the reason. This saves the user from wondering whether you missed them, and stops the next review from raising them again.
+
+**Verification.** One line: which CI jobs passed on which commit, what you ran locally, what nobody ran (suites CI skips, live systems), and which step of the blast-radius ladder the key safety fact reached.
 
 End with an overall verdict in one or two sentences: ready to merge, ready after the must-fixes, or needs rework.
 

@@ -19,7 +19,7 @@ Track the steps in a todo list: Locate, Review, Synthesize, Approve, Apply.
 
 Tell the user in one line that you're starting three reviewers and on which model.
 
-Spawn three reviewers in one message, in the background, using the `work-with-me:wwm-explorer` agent (read-only), each on the model from the `reflect reviewers` line in [../work-with-me/references/models.md](../work-with-me/references/models.md). Give each the transcript path (or digest), the plugin checkout path, and its lens from [references/reviewers.md](references/reviewers.md), with the shared rules at the top of that file.
+Spawn three reviewers in one message, in the background, using the `work-with-me:wwm-explorer` agent (read-only), each on the model from the `reflect reviewers` line in [../work-with-me/references/models.md](../work-with-me/references/models.md). Give each the transcript path (or digest), the plugin checkout path, and its lens from [references/reviewers.md](references/reviewers.md), with the shared rules at the top of that file. If the user asked a question when starting reflect, pass it to the reviewers as a question. Don't tell them the answer or the edit you expect.
 
 | Lens | Looks for |
 | --- | --- |
@@ -49,4 +49,4 @@ The user picks which rows to apply and may redirect any of them. When there are 
 - For approved structural items, build the hook, script, or test test-first with the **tdd** skill.
 - For each approved behavior lesson, add an eval case under `evals/` in the plugin checkout that would have caught it: copy the closest existing case, change the prompt, the setup script, and the graders. Prefer exact graders (`tool_used`, `tool_order`, `regex`) over judge rubrics. Then run just that case with `claude plugin eval . --scaffold --trust-plugin --runs 3 --case <name> --allow-tools Write Edit Bash`, and report its score with and without the plugin.
 - Run `bash tests/run.sh` in the plugin checkout.
-- Don't commit or push. Hand back with one line per change: the file and what changed. Remind the user that other devices need a push, then `claude plugin marketplace update work-with-me`.
+- Don't commit or push unless the user asks. Hand back with one line per change: the file and what changed. Remind the user that other devices need a push, then `claude plugin marketplace update work-with-me`.
