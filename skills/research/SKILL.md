@@ -1,6 +1,7 @@
 ---
 name: research
-description: Look things up instead of answering from training data. Use before answering or coding against any third-party library, framework, SDK, CLI, API, or cloud service, and for anything new, latest, version-specific, or time-sensitive (releases, pricing, limits, deprecations). Also use when a dependency error message is unfamiliar.
+description: Looks things up in current docs, changelogs, and installed source instead of answering from training data. Use before answering or coding against any third-party library, framework, SDK, CLI, API, or cloud service, and for anything new, latest, version-specific, or time-sensitive (releases, pricing, limits, deprecations). Also use when a dependency error message is unfamiliar.
+argument-hint: [library, API, or question]
 ---
 
 # Research before answering

@@ -1,6 +1,8 @@
 ---
 name: arena
-description: Design bakeoff for non-trivial plans. Several agents on different models each propose a plan independently, a judge from a different model compares them against a rubric, and the best plan is merged with the strongest ideas from the others. Use for /arena, "arena this", architecture decisions, new features with real design alternatives, or when one attempt would lock in the wrong shape.
+description: Runs a design bakeoff for non-trivial plans. Several agents on different models each propose a plan independently, a judge from a different model compares them against a rubric, and the best plan is merged with the strongest ideas from the others. Use for /arena, "arena this", architecture decisions, new features with real design alternatives, or when one attempt would lock in the wrong shape.
+argument-hint: [task or design question]
+disable-model-invocation: true
 ---
 
 # Arena
@@ -19,6 +21,8 @@ Track the phases in a todo list: Frame, Fan out, Judge, Pick, Merge, Confirm.
 4. **Pick runners** from the `arena runners` line in [../work-with-me/references/models.md](../work-with-me/references/models.md). At least two, on different models. Add a runner per extra design direction when the space is wide.
 
 ## 2. Fan out
+
+Tell the user in one line how many runners and which models you're starting, plus the judge, before spawning.
 
 Spawn all runners in one message, in the background, using the `work-with-me:wwm-worker` agent with plan-only instructions (no code edits). Each writes its plan to its own file (`.arena/<slug>/plan-<n>.md`). If a runner fails, continue with the rest and note it.
 
@@ -44,4 +48,6 @@ Present the final plan to the user:
 - Which plan was the base and why, and what the judge said.
 - What was merged in from the others and what was rejected.
 
-Wait for the user's go-ahead before implementing, unless they already said to proceed. Then implement with the **tdd** skill. Delete `.arena/` when done, or add it to `.gitignore`.
+If the report is long or has several findings, deliver it as an HTML page per [../work-with-me/references/rich-reports.md](../work-with-me/references/rich-reports.md), with a short summary in chat.
+
+Write the final plan in the shape of [../work-with-me/references/plan-template.md](../work-with-me/references/plan-template.md), so any agent can carry it out. Wait for the user's go-ahead before implementing, unless they already said to proceed. Then implement it yourself with the **tdd** skill, or delegate it per "Delegating a code change" in the work-with-me skill. A delegate gets the full plan text in its prompt, because `.arena/` isn't committed and a worktree won't have it. Delete `.arena/` when done, or add it to `.gitignore`.

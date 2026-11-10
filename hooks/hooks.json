@@ -1,11 +1,28 @@
 {
-  "description": "work-with-me: load the working style at session start, and require human confirmation for commits, pushes and PRs.",
+  "description": "work-with-me: describe the plugin at session start, ask before commits, pushes, PRs and cloud or publish commands, and run the project's opt-in verify check before Claude finishes.",
   "hooks": {
     "SessionStart": [
-      { "hooks": [ { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh\"" } ] }
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh\"", "timeout": 10 }
+        ]
+      }
     ],
     "PreToolUse": [
-      { "matcher": "Bash", "hooks": [ { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/git-guard.sh\"" } ] }
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/git-guard.sh\"", "timeout": 10, "onFailure": "block" },
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/cloud-guard.sh\"", "timeout": 10, "onFailure": "block" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/verify-stop.sh\"", "timeout": 600 }
+        ]
+      }
     ]
   }
 }

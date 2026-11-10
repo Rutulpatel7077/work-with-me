@@ -1,7 +1,16 @@
 {
   "name": "work-with-me",
-  "version": "0.1.0",
   "description": "Work with AI like a trusted senior teammate: asks when unclear, researches instead of guessing, fixes test-first, plans hard designs in an arena, reviews like a human, and never commits without your review.",
-  "author": { "name": "Rutul Patel" },
-  "keywords": ["workflow", "tdd", "research", "arena", "code-review", "agents"]
+  "author": {
+    "name": "Rutul Patel"
+  },
+  "keywords": [
+    "workflow",
+    "tdd",
+    "research",
+    "arena",
+    "code-review",
+    "agents"
+  ],
+  "license": "MIT"
 }

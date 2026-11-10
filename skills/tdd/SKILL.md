@@ -1,6 +1,7 @@
 ---
 name: tdd
-description: Test-first workflow for bug fixes and behavior changes. Use whenever fixing a bug, adding or changing behavior, or when the user mentions tests, TDD, a regression, or "make sure it works". Write a failing test, confirm it fails for the right reason, then change the code until it passes.
+description: Runs a test-first workflow for bug fixes and behavior changes. Use whenever fixing a bug, adding or changing behavior, or when the user mentions tests, TDD, a regression, or "make sure it works". Write a failing test, confirm it fails for the right reason, then change the code until it passes.
+argument-hint: [bug or behavior]
 ---
 
 # Test-driven changes
@@ -10,7 +11,7 @@ The default for any change to behavior: prove the problem with a test before you
 ## Steps
 
 1. **Learn the project's testing setup.** Find the test runner, where tests live, and how existing tests are written (read two or three nearby ones). Find the command that runs a single test. Match their style, helpers, and fixtures.
-2. **Pin the behavior.** Write down the expected behavior and the current behavior in one sentence each. For a bug, reproduce it first.
+2. **Pin the behavior.** Write down the expected behavior and the current behavior in one sentence each. For a bug, reproduce it first, locally or against test data. Never against production or shared cloud resources.
 3. **Write the failing test.** The smallest test that would have caught the bug, or that describes the new behavior. Assert what a caller can observe (return values, output, state, rendered UI), not internal calls.
 4. **Run it and watch it fail.** Confirm it fails *for the reason you expect*. If it passes, or fails for an unrelated reason (import error, typo, missing fixture), fix the test before you touch the code.
 5. **Change the code.** The smallest change that makes the test pass.
@@ -27,6 +28,15 @@ Some changes can't get a cheap, honest test: production-only state, heavy infras
 
 - Use the closest executable check (repro script, CLI command, browser automation, log assertion).
 - **Say so in your report.** Name what you used instead and why a test wasn't practical.
+
+## Is it a good test?
+
+A test should check what the code's users can see: return values, errors, saved state, requests sent, output shown. Not private helpers or internal call order. Check every test you write against two imagined edits:
+
+- **Break the behavior** (wrong value, skipped effect, effect done twice). The test must fail. If it still passes, it proves nothing. Usual causes: a loose assertion, an expected value computed by the code under test, or asserting on data the test built itself.
+- **Change the internals, same observable results.** The test must still pass. If it fails, it's pinned to the implementation and will break on every refactor.
+
+Derive expected values from the requirement, not from running the code.
 
 ## Guardrails
 

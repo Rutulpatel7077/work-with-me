@@ -1,13 +1,31 @@
 #!/usr/bin/env bash
 # PreToolUse guard: commits, pushes and PR/repo creation need a human yes.
 # Reads the hook payload on stdin. Prints nothing to let the call through.
-input="$(cat)"
+command="$(sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*/\1/p')"
+# JSON keeps line breaks and tabs as \n and \t. Treat each line as its own command.
+command="$(printf '%s' "$command" | sed -E 's/\\[nr]/; /g; s/\\t/ /g')"
 
-git_write='(^|[^[:alnum:]_])git[^;&|]*[[:space:]](commit|push)([^[:alnum:]_-]|$)'
-gh_write='(^|[^[:alnum:]_])gh[[:space:]]+(pr[[:space:]]+(create|merge)|repo[[:space:]]+create)([^[:alnum:]_-]|$)'
+start='(^|[^[:alnum:]_-])'
+end='([^[:alnum:]_-]|$)'
+writes=(
+  "${start}git([[:space:]].*)?[[:space:]](commit|push)${end}"
+  "${start}gh[[:space:]].*(pr[[:space:]]+(create|merge)|repo[[:space:]]+create)${end}"
+)
+safe=(
+  "${start}git[[:space:]].*stash[[:space:]]+push${end}"
+)
 
-if printf '%s' "$input" | grep -Eq "$git_write|$gh_write"; then
-  cat <<'JSON'
+matches_any() {
+  local segment="$1"; shift
+  for pattern in "$@"; do
+    printf '%s' "$segment" | grep -Eq "$pattern" && return 0
+  done
+  return 1
+}
+
+while IFS= read -r segment; do
+  if matches_any "$segment" "${writes[@]}" && ! matches_any "$segment" "${safe[@]}"; then
+    cat <<'JSON'
 {
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
@@ -16,5 +34,7 @@ if printf '%s' "$input" | grep -Eq "$git_write|$gh_write"; then
   }
 }
 JSON
-fi
+    exit 0
+  fi
+done < <(printf '%s\n' "$command" | tr ';&|' '\n\n\n')
 exit 0
