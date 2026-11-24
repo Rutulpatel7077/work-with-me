@@ -17,6 +17,7 @@ My way of working with AI coding agents, packaged as a Claude Code plugin. The a
 | `skills/catch-up` | Plain-language catch-up after time away, with every decision waiting on you and a recommendation for each. |
 | `skills/reflect` | Mines the session for mistakes and corrections, and proposes edits to these skills, the project's CLAUDE.md, or a hook. Applies only what you approve. |
 | `skills/in-your-own-words` | Restates your goal and the problem behind it, with assumptions marked, so misunderstandings surface early. |
+| `skills/bro` | Says it like one person talking to another: plain words, no jargon, exact on names and numbers. `/bro` restates the last message; review uses it for explanations and draft PR comments. |
 | `agents/wwm-worker` | Delegate that carries out a written plan step by step, test-first, stops instead of improvising, and reports with evidence. |
 | `agents/wwm-researcher` | Delegate that researches and returns a sourced answer. Read and web tools only, 30 turns max. |
 | `agents/wwm-explorer` | Read-only investigator used by explain and reflect. Can read and search, nothing else. |
@@ -100,6 +101,9 @@ The guards only ask on commands that change things outside your machine, so they
 | `unslop-comments` | removes narrating comments and commented-out code but keeps the real *why* comment |
 | `review-finds-bug` | finds the planted off-by-one on a branch, reproduces it, and gives repro steps |
 | `long-review-report` | delivers a long review as an HTML report with a short chat summary |
+| `review-missing-tests` | names each untested branch of new logic as a concrete case, and runs blast-radius |
+| `review-links-and-comments` | opens a review with a Links block and gives a paste-ready comment per finding, without posting it |
+| `review-skips-red-ci` | treats a red CI job as status only: no log digging, no finding |
 | `cloud-read-only` | diagnoses a crashing prod pod with read-only commands and hands the fix to you |
 | `no-commit-typo` | fixes a typo without committing or pushing |
 

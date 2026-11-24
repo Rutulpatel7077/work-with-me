@@ -6,6 +6,7 @@ bash tests/git-guard.test.sh
 bash tests/cloud-guard.test.sh
 bash tests/check-citations.test.sh
 bash tests/verify-stop.test.sh
+bash tests/pr-context.test.sh
 for f in .claude-plugin/*.json hooks/hooks.json; do python3 -m json.tool "$f" >/dev/null && echo "ok   json  $f"; done
 bash hooks/session-start.sh | python3 -m json.tool >/dev/null && echo "ok   json  session-start output"
 context_size="$(bash hooks/session-start.sh | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["hookSpecificOutput"]["additionalContext"]))')"

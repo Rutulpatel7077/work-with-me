@@ -84,6 +84,11 @@
   <header>
     <h1>{{TITLE}}</h1>
     <div class="meta">{{SUBTITLE: repo, branch or commit, date}}</div>
+    <!-- Links the user will want to open: PR, files, ticket, CI or preview, related pages. Only real links; delete if none. -->
+    <nav class="toc links" aria-label="Links">
+      <a href="{{PR_URL}}">{{PR}}</a>
+      <a href="{{TICKET_URL}}">{{TICKET}}</a>
+    </nav>
     <nav class="toc">
       <a href="#section-1">{{SECTION_1_NAME}}</a>
       <a href="#section-2">{{SECTION_2_NAME}}</a>

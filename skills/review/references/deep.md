@@ -4,7 +4,7 @@ Several agents on different models each try to break the change. A finding survi
 
 ## 1. Frame
 
-- **Scope and intent.** From review steps 1 and 2: what the change is, what it's supposed to do, and the comments already raised. Restate the intent in two or three sentences (the **in-your-own-words** skill). If the intent is unclear, ask before spending agents.
+- **Scope and intent.** From review steps 1 and 2: what the change is, what it's supposed to do, the comments already raised, and the CI status. Restate the intent to the user in chat in two or three sentences (the **in-your-own-words** skill), naming where it came from: the ticket, the PR body, or the commits. If the intent is unclear or its only source looks stale, ask before spending agents.
 - **Adversaries.** Take the models from the `deep review adversaries` line in [../../work-with-me/references/models.md](../../work-with-me/references/models.md). At least two, on different models.
 
 ## 2. Fan out
@@ -12,6 +12,10 @@ Several agents on different models each try to break the change. A finding survi
 Tell the user in one line how many adversaries and which models you're starting before spawning.
 
 Spawn every adversary in one message, in the background, with the `general-purpose` agent and `isolation: "worktree"` so each has its own copy of the repo and repro files can't collide. If the change is uncommitted, tell each adversary to apply it first with the patch you saved (`git diff > <scratchpad>/change.patch`, then `git apply` in its worktree).
+
+`isolation: "worktree"` copies the session's own repo. When the PR lives in another repo, build one detached worktree per adversary from that repo's clone yourself (as in review step 1), install dependencies in each, and give each adversary its absolute path to work in.
+
+While they run, do the review's **missing tests for complex logic** check yourself. Adversaries leave out anything they didn't run, so an untested branch never comes back from them.
 
 Give each the scope, the intent, the already-raised comments, and this brief:
 

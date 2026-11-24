@@ -45,7 +45,7 @@ The user picks which rows to apply and may redirect any of them. When there are 
 
 ## 5. Apply
 
-- Make each approved edit in the plugin checkout, or the project's `CLAUDE.md` for repo-specific facts. Keep each edit the smallest wording that changes behavior. If guidance exists but didn't fire, strengthen or move it instead of adding a duplicate.
+- Make each approved edit in the plugin checkout, or for repo-specific facts in the `CLAUDE.md` or `AGENTS.md` of the repo the lesson is about (which may not be the session's current directory). Keep each edit the smallest wording that changes behavior. If guidance exists but didn't fire, strengthen or move it instead of adding a duplicate.
 - For approved structural items, build the hook, script, or test test-first with the **tdd** skill.
 - For each approved behavior lesson, add an eval case under `evals/` in the plugin checkout that would have caught it: copy the closest existing case, change the prompt, the setup script, and the graders. Prefer exact graders (`tool_used`, `tool_order`, `regex`) over judge rubrics. Then run just that case with `claude plugin eval . --scaffold --trust-plugin --runs 3 --case <name> --allow-tools Write Edit Bash`, and report its score with and without the plugin.
 - Run `bash tests/run.sh` in the plugin checkout.
