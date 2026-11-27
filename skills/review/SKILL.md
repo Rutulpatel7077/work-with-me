@@ -23,7 +23,7 @@ Review the way a careful senior teammate would: is it correct, can the next pers
 
 **When the PR's repo isn't the current directory,** find a local clone of it and build a detached worktree in the scratchpad (`git -C <clone> fetch origin pull/<n>/head && git -C <clone> worktree add --detach <scratchpad>/<repo>-pr<n> FETCH_HEAD`), then install dependencies there. Pass `-R <owner>/<repo>` (or the full PR URL) to every `gh` call, because `gh` otherwise reads the current directory's repo. Never switch the user's own checkout.
 
-Read the PR description, linked issue, or commit messages to understand the intent. If you can't tell what the change is supposed to do, ask.
+Read the PR description, linked issue, or commit messages to understand the intent. If you can't tell what the change is supposed to do, ask. What that text says about the code ("no behavior change", "covered by tests", "restricted to admins") is a claim to check in step 3, not a fact. On a stacked PR, look at the PRs built on this one (`gh pr list --base <this PR's head branch>`) before calling something missing: a later layer may add it.
 
 When the branch, title, or body names a ticket and a tracker tool is available (Jira, Linear, GitHub issue), read it. Its acceptance criteria are the spec: one the code doesn't meet is a finding. Note any attached mockups or screenshots.
 
@@ -47,6 +47,8 @@ It prints the base and head, the CI status per job, the reviews, the comments, t
 
 Note each point raised, who raised it (person or bot, such as Copilot, CodeRabbit, Bugbot), and whether it was resolved or answered. If `gh` is missing or there's no PR, skip this step and say so in one line.
 
+**A second pass is not a first pass.** When you or an earlier review already covered this PR and the head has moved, review the commits since the one last reviewed, plus any merge or rebase from the base. A bad merge drops guards in neighboring code and brings in changes that belong to another PR, so a deletion unrelated to the PR's purpose is a question for the author. Report only unfixed and new findings.
+
 **CI status is an input, not a finding.** Read it once, here, only to decide what not to re-run locally. When a job is red, the author already sees it: don't open its logs, debug it, reproduce it, guess at its cause, or report it. The verification line says only that it's red.
 
 ## 3. Review the change
@@ -58,6 +60,7 @@ On a branch or PR, tag each finding **introduced** (this change added it) or **p
 Check:
 
 - **Correctness.** Logic errors, off-by-one, null and empty cases, error handling, races, wrong assumptions about a dependency's API (use the **research** skill when unsure).
+- **What reviewers catch.** Go through [references/diff-triggers.md](references/diff-triggers.md). Each check there names something the diff does (adds a status, copies a rule, writes an async result to state, tightens a validator, changes config, states a claim in a comment) and what to look at to tell whether it's a problem, usually a grep outside the diff. These are the findings human reviewers raise and a read of the diff alone misses.
 - **Replaced code keeps its behavior.** For each function, branch, attribute, or test assertion the diff deletes or replaces, read its `-` lines and list what it handled: fallbacks, null and empty cases, accessibility attributes, values the old tests pinned. Confirm the new code still does each one or the PR says it was dropped on purpose. Grepping for leftover callers isn't enough. An assertion rewritten to fit a refactor (checking a styling hook where it used to check behavior) is a finding unless the PR explains it.
 - **Same value, same source.** When new UI shows something the same view already shows (a year, a name, a total, a status), trace where each neighbor in that component gets it. A new data path for an existing concept is a finding, or a dismissal that names the exact pair you compared.
 - **Tests.** Does a test cover the new behavior? Check each new assertion, not just each test, with [references/test-quality.md](references/test-quality.md): negated-only checks, counts, and config with no value assertion pass on broken code. If CI is green on the head commit you're reviewing, cite those jobs and don't re-run the same suites. A green run only says the existing tests pass, so spend the time on coverage and assertion strength instead. Run locally what CI doesn't run, and run everything when there is no CI, the head moved after the run, or the branch is behind its base. Run tests through the repo's own scripts (the commands in `AGENTS.md`, `CLAUDE.md`, or `package.json`), not a runner command you assembled. If a local run fails a suite CI passed, suspect your setup first.
@@ -68,9 +71,10 @@ Check:
 - **Simplicity.** Is there a smaller change that does the same thing? Abstractions with one caller, unused options, duplicated logic that already exists in the codebase.
 - **Consistency.** Precedence, highest first: a written rule (the instruction files from step 1, ADRs), then what most of the repo does, then the nearest file. A nearby file that breaks a written rule is debt, not precedent: report the new copy as a finding (introduced) and mention the old ones (pre-existing). When code was copied from a sibling, compare its tests with the sibling's tests too, since a copy often takes the implementation but not the test strength.
 - **Accessibility (UI changes).** New tables, regions, dialogs, and controls have an accessible name. Scroll containers can be reached by keyboard. State is never shown only by color, weight, or position: selected or current items carry `aria-current`, `aria-selected`, or screen-reader text. Use the shared component's existing accessibility props before writing new markup. A test that can only find state through a styling attribute (`data-state`, a class) points at the same gap: if a test can't find it by role or name, neither can a screen reader. A suggested fix for "the user can't tell X apart" must cover the non-visual channel too.
-- **Security and data.** Input validation at boundaries, secrets in code, injection, destructive operations. Never copy a secret's value into the report. Give its location and type, and recommend rotating it, because a committed secret is exposed even after it's deleted.
+- **Security and data.** Authorization and tenant scoping compared with sibling routes, what logs and error messages can carry, untrusted files and URLs, input validation at boundaries, secrets in code, injection, destructive operations. Never copy a secret's value into the report. Give its location and type, and recommend rotating it, because a committed secret is exposed even after it's deleted.
 - **Blast radius.** For anything beyond a trivial change, run the **blast-radius** skill: what could break outside the diff, and the one fact the change is safe because of, proven by running code.
 - **Commits match their titles.** On a multi-commit PR, run `git log --oneline <base>..<head> -- <flags, routes, auth, config paths>` and check that each commit touching those paths does what its title says. Report a removed flag, route, or guard that neither the title nor the PR description mentions.
+- **Behavior nobody asked for.** A change to a retry, timeout, default, ordering, or side effect that the ticket and the PR description don't mention gets raised as a question, even when the code looks right. It may be a good change, but nobody has reviewed it as one.
 
 ## 4. Reproduce what you can
 
@@ -81,7 +85,17 @@ For each correctness or security finding, try to reproduce it yourself before re
 - **Keep it cheap.** Spend a few minutes, not an hour. If a repro gets complicated, stop and report the finding as unconfirmed with your reasoning.
 - **Clean up last.** Keep the review worktree until the report is written and every surprising local result is explained. Never chain cleanup onto a command whose output you haven't seen. Then delete throwaway scripts, test data, and worktrees, unless a repro is worth keeping as a real regression test (then say so).
 
-Mark each finding **Reproduced** (with the command and the output you saw) or **Not reproduced** (with why: needs a live system, too costly, or reasoning only).
+Mark each behavioral finding **Reproduced** (with the command and the output you saw) or **Not reproduced** (with why: needs a live system, too costly, or reasoning only).
+
+**Check every finding before it goes in the report,** including the ones that can't be reproduced (design, docs, missing tests). Open the cited line again and confirm it says what the finding says. Confirm whether the change introduced it or it was already there, and that its tag says so. Then rule out the reasons authors rightly reject a comment:
+
+- **The guarantee lives elsewhere.** Before reporting a missing guard, check, or null case, name where the guarantee would be (the types, the server, another service, a broader role, a database constraint) and look there. This is the most common wrong comment, and most of them rest on a fact outside the diff.
+- **You misread the code.** Order of operations, join semantics, whether anything awaits between two lines, a test that pins the behavior on purpose.
+- **It is a planned interim state.** A flag kept as a kill switch, a building block for the next PR in the stack, a shim a later step removes.
+- **Stricter than the real data.** A validation or limit that real values or a product decision contradict.
+- **It needs deploy facts you don't have.** Migration order per environment, what the migration tool already guarantees, config another team owns. Ask instead of asserting.
+
+A finding that fails one of these moves to "Considered and dismissed" with the reason.
 
 ## 5. Report
 
@@ -94,7 +108,7 @@ Group findings by severity: **Must fix** (bugs, security, data loss), **Should f
 - The file and line, and **introduced** or **pre-existing** when reviewing a branch.
 - What's wrong and why it matters, in a sentence or two.
 - **How to reproduce**, for anything behavioral. Two to four plain-language steps a teammate could follow, like "1. Log in as a user with no orders. 2. Open the invoices page. 3. The page crashes instead of showing an empty list." Not a wall of detail.
-- **Reproduced** or **Not reproduced**, from step 4.
+- **Reproduced** or **Not reproduced**, from step 4, for anything behavioral.
 - A suggested fix.
 - For **Must fix** and **Should fix**, a **draft comment** ready to paste on GitHub: anchored at `file:line`, addressed to the author, two to four sentences saying what breaks and the fix. A finding that wasn't reproduced says so in its comment too, so nothing unverified gets posted as fact.
 
@@ -104,7 +118,7 @@ Then a separate section:
 
 **Already raised.** Points from step 2 that match a real problem, one line each: "`file:line`, already raised by @reviewer (or bot name), still unaddressed. Agree." Don't re-explain them. If you disagree with an existing comment, say so in one line with the reason. Leave out existing comments that were resolved.
 
-**Considered and dismissed.** Things that looked like problems but aren't (by design, already decided in an ADR, a standard convention), one line each with the reason. Name the exact thing you compared or checked, not a nearby one. This saves the user from wondering whether you missed them, and stops the next review from raising them again. A dismissal that rests on facts outside the diff (another repo's behavior, a backend guarantee) is invisible to the human reviewer, who will ask the same question. When there's no PR yet, or the PR description doesn't cover it, also give it as a paste-ready **Assumptions** line for the PR description, with its evidence.
+**Considered and dismissed.** Things that looked like problems but aren't (by design, already decided in an ADR, a standard convention, guaranteed somewhere else, a planned interim state), one line each with the reason. Name the exact thing you compared or checked, not a nearby one. This saves the user from wondering whether you missed them, and stops the next review from raising them again. A dismissal that rests on facts outside the diff (another repo's behavior, a backend guarantee) is invisible to the human reviewer, who will ask the same question. When there's no PR yet, or the PR description doesn't cover it, also give it as a paste-ready **Assumptions** line for the PR description, with its evidence.
 
 **Verification.** One line: the instruction files you read, which CI jobs passed on which commit (a red job is just "red, not reviewed"), what you ran locally, what nobody ran (suites CI skips, live systems), and which step of the blast-radius ladder the key safety fact reached.
 
