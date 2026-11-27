@@ -103,7 +103,7 @@ The guards only ask on commands that change things outside your machine, so they
 | `long-review-report` | delivers a long review as an HTML report with a short chat summary |
 | `review-missing-tests` | names each untested branch of new logic as a concrete case, and runs blast-radius |
 | `review-nested-rules` | applies a rule that lives only in a subfolder's `AGENTS.md`, and flags a negated assertion that hides a bug |
-| `review-drift-and-claims` | catches a re-implemented rule that disagrees with the existing one, and a docstring guarantee the code doesn't keep |
+| `review-drift-and-claims` | catches a re-implemented rule that disagrees with the existing one, a docstring guarantee the code doesn't keep, and a new status that a module outside the diff doesn't handle |
 | `review-links-and-comments` | opens a review with a Links block and gives a paste-ready comment per finding, without posting it |
 | `review-skips-red-ci` | treats a red CI job as status only: no log digging, no finding |
 | `cloud-read-only` | diagnoses a crashing prod pod with read-only commands and hands the fix to you |
