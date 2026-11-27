@@ -16,6 +16,15 @@ Flag each one and name the stronger form:
 - **State found through styling.** Selecting by `data-state`, a class name, or a test id when the behavior is visible by role and name. It hides accessibility gaps; see the review's Accessibility check.
 - **Weakened during a refactor.** An existing assertion loosened, swapped for a styling check, or deleted to make a refactor pass. Diff the test files against the base for this.
 
+## Tests at the wrong layer
+
+Unit tests of helpers can all pass while the feature is broken where the pieces meet. Flag each one and name the missing test:
+
+- **Wiring with no test through it.** A new endpoint, error-to-status mapping, middleware registration, or hand-written query needs one test through the real handler or database, and it must fail when the registration is removed. An operation that claims to be atomic needs a test that the rollback happens.
+- **Mocked in every test that touches it.** When a new module, guard, or child component is mocked wherever it appears, nothing runs its real logic. Ask for one test that does, including the guard's own branches. A test of a flagged path turns the flag itself on or off, not a prop that stands in for it.
+- **A test that can't fail where it runs.** The test environment lacks the behavior under test (a browser API the DOM emulator doesn't implement, a timezone variable the runner ignores). Prove it with the mutation step below.
+- **State that leaks between tests.** Spies, fake timers, mocks, and environment variables restored at the end of the test body instead of in `afterEach`, so a failed assertion leaks them into the next test. Module-level state or a shared cache that makes tests pass only in one order, or pass by hitting the cache.
+
 ## Prove it bites
 
 When you can't tell by reading whether an assertion would catch a break, mutate the code once, run only that test, then restore:

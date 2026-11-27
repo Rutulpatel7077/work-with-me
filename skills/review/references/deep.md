@@ -15,7 +15,7 @@ Spawn every adversary in one message, in the background, with the `general-purpo
 
 `isolation: "worktree"` copies the session's own repo. When the PR lives in another repo, build one detached worktree per adversary from that repo's clone yourself (as in review step 1), install dependencies in each, and give each adversary its absolute path to work in.
 
-While they run, do the review's **missing tests for complex logic** check yourself. Adversaries leave out anything they didn't run, so an untested branch never comes back from them.
+While they run, do the review's **missing tests for complex logic** check yourself and go through [diff-triggers.md](diff-triggers.md). Adversaries leave out anything they didn't run, so an untested branch, a stale doc, or a copied rule never comes back from them. Put what you find through the review's step 4 check before it goes in the report.
 
 Give each the scope, the intent, the already-raised comments, and this brief:
 
